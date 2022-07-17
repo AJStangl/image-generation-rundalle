@@ -1,3 +1,13 @@
+import os
+import random
+
+import PIL
+import numpy as np
+import pandas as pd
+import torchvision.transforms as T
+from torch.utils.data import Dataset
+
+
 class RuDalleDataset(Dataset):
 	clip_filter_thr = 0.24
 
@@ -6,13 +16,16 @@ class RuDalleDataset(Dataset):
 			file_path,
 			csv_path,
 			tokenizer,
+			model,
+			device,
 			resize_ratio=0.75,
 			shuffle=True,
 			load_first=None,
 			caption_score_thr=0.6
 	):
-
-		self.text_seq_length = model.get_param('text_seq_length')
+		self.device = device
+		self.model = model
+		self.text_seq_length = self.model.get_param('text_seq_length')
 		self.tokenizer = tokenizer
 		self.target_image_size = 256
 		self.image_size = 256
@@ -47,10 +60,10 @@ class RuDalleDataset(Dataset):
 		file_path, img_name, text = self.samples[item]
 		try:
 			image = self.load_image(file_path, img_name)
-			image = self.image_transform(image).to(device)
+			image = self.image_transform(image).to(self.device)
 		except Exception as err:  # noqa
 			print(err)
 			random_item = random.randint(0, len(self.samples) - 1)
 			return self.__getitem__(random_item)
-		text = tokenizer.encode_text(text, text_seq_length=self.text_seq_length).squeeze(0).to(device)
+		text = self.tokenizer.encode_text(text, text_seq_length=self.text_seq_length).squeeze(0).to(self.device)
 		return text, image
