@@ -1,0 +1,5 @@
+torch
+rudalle==1.1.3
+translatepy==2.3
+ruclip==0.0.1
+wandb==0.13.0rc5
